@@ -14,13 +14,17 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--spec", help="Path to GeometrySpec JSON file")
     group.add_argument("--stdin", action="store_true", help="Read spec from stdin")
-    parser.add_argument("--output", required=True, help="Output directory for GLB file")
+    parser.add_argument("--output", help="Output directory for GLB file")
     parser.add_argument("--name", help="Override GLB filename (without .glb extension)")
     parser.add_argument(
         "--validate-only", action="store_true",
         help="Validate spec without building any geometry"
     )
     args = parser.parse_args()
+
+    if not args.validate_only and not args.output:
+        print("error: --output is required when not using --validate-only", file=sys.stderr)
+        return 1
 
     if args.stdin:
         spec = json.load(sys.stdin)

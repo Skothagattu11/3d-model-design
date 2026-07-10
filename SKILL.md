@@ -75,16 +75,15 @@ Once approved:
 
 2. Write the spec JSON to `<output_dir>/<object_name>_spec.json`
 
-3. Find the skill directory. It is located at:
-   `C:\Users\skothagattu\.claude\skills\3d-model\`
-   (or the symlink target if using a symlink)
+3. Find generate_3d.py — it is in the same directory as this SKILL.md. The skill directory is wherever you installed 3d-model-skill (e.g. `~/.claude/skills/3d-model/` on Mac/Linux or `%USERPROFILE%\.claude\skills\3d-model\` on Windows). Run:
 
-4. Run:
 ```bash
-python "C:\Users\skothagattu\.claude\skills\3d-model\generate_3d.py" \
-  --spec "<output_dir>\<object_name>_spec.json" \
+python "<path-to-skill-dir>/generate_3d.py" \
+  --spec "<output_dir>/<object_name>_spec.json" \
   --output "<output_dir>"
 ```
+
+Where `<path-to-skill-dir>` is the directory containing this SKILL.md file.
 
 5. Report the printed stats back to the user.
 

@@ -48,44 +48,60 @@ def badge_circle_mask(H: int, W: int, bcx: float, bcy: float, r: float) -> np.nd
 # Layer extraction
 # ---------------------------------------------------------------------------
 
-def build_layer_rgba(
+def build_base_rgba(
     rgb: np.ndarray,
-    depth: np.ndarray,
     circle_mask: np.ndarray,
-    lo: float,
-    hi: float,
-    feather: int = 15,
-    is_last: bool = False,
+    feather: int = 6,
 ) -> Image.Image:
     """
-    Return an RGBA image where only pixels in depth range [lo, hi] are visible.
-
-    Feathering blurs the alpha mask at boundaries so adjacent layers blend
-    smoothly rather than showing a hard cut.
+    Full badge image as the solid base layer — visible everywhere inside
+    the badge circle. This is always the rearmost plane and ensures the badge
+    looks complete from any viewing angle.
     """
     H, W = rgb.shape[:2]
+    alpha = circle_mask.astype(np.float32) * 255.
 
-    # Hard mask: pixels whose depth falls in this layer's range
-    if is_last:
-        hard = (depth >= lo).astype(np.float32)
-    else:
-        hard = ((depth >= lo) & (depth < hi)).astype(np.float32)
-
-    # Apply badge circle — pixels outside badge are fully transparent
-    hard *= circle_mask.astype(np.float32)
-
-    # Feather edges for smooth blending between layers
     if feather > 0:
-        pil_mask = Image.fromarray((hard * 255).astype(np.uint8), mode='L')
+        pil_mask = Image.fromarray(alpha.astype(np.uint8), mode='L')
         pil_mask = pil_mask.filter(ImageFilter.GaussianBlur(feather))
         alpha = np.array(pil_mask).astype(np.float32)
-    else:
-        alpha = (hard * 255).astype(np.float32)
 
     rgba = np.zeros((H, W, 4), dtype=np.uint8)
     rgba[:, :, :3] = rgb
     rgba[:, :, 3] = alpha.clip(0, 255).astype(np.uint8)
+    return Image.fromarray(rgba, mode='RGBA')
 
+
+def build_popup_rgba(
+    rgb: np.ndarray,
+    depth: np.ndarray,
+    circle_mask: np.ndarray,
+    threshold: float,
+    feather: int = 10,
+) -> Image.Image:
+    """
+    Floating pop-out layer: only pixels with depth >= threshold are visible.
+    Pixels below threshold → alpha=0, so you see through to the base layer.
+    Feather is applied to the depth mask edges only (not the circle edge),
+    so from the side this layer shows only the foreground element shapes,
+    NOT a full glowing disc.
+    """
+    H, W = rgb.shape[:2]
+
+    # Depth mask: only foreground content
+    depth_mask = (depth >= threshold).astype(np.float32)
+    depth_mask *= circle_mask.astype(np.float32)
+
+    if feather > 0:
+        pil_mask = Image.fromarray((depth_mask * 255).astype(np.uint8), mode='L')
+        pil_mask = pil_mask.filter(ImageFilter.GaussianBlur(feather))
+        alpha = np.array(pil_mask).astype(np.float32)
+    else:
+        alpha = depth_mask * 255.
+
+    rgba = np.zeros((H, W, 4), dtype=np.uint8)
+    rgba[:, :, :3] = rgb
+    rgba[:, :, 3] = alpha.clip(0, 255).astype(np.uint8)
     return Image.fromarray(rgba, mode='RGBA')
 
 
@@ -185,28 +201,24 @@ def build_spatial_glb(
 
     circle_mask = badge_circle_mask(H, W, bcx, bcy, badge_r_px)
 
-    # Layer Z positions — foreground at Z=0, background at Z=-depth_spread
-    # Use non-linear spacing so foreground layers are tighter (more dramatic pop)
-    t = np.linspace(0, 1, n_layers) ** 1.4          # slight power curve
-    z_positions = -(t * depth_spread)                # Z=0 front, Z=-spread back
-    z_positions = z_positions[::-1]                  # layer 0 = background (most negative)
-
-    # Depth thresholds — evenly split [0,1] by number of layers
-    boundaries = np.linspace(0, 1, n_layers + 1)
-
     meshes = []
-    for i in range(n_layers):
-        lo = boundaries[i]
-        hi = boundaries[i + 1]
-        z  = float(z_positions[i])
-        is_last = (i == n_layers - 1)
 
-        label = 'foreground' if is_last else f'layer {i}'
-        print(f'  Plane {i} : depth {lo:.2f}–{hi:.2f}  Z={z:+.1f}  ({label})')
+    # --- Base layer (complete badge, rearmost) --------------------------------
+    print(f'  Base    : full badge image  Z={-depth_spread:+.1f}')
+    base_rgba = build_base_rgba(rgb, circle_mask, feather=6)
+    meshes.append(make_plane_mesh(base_rgba, size=badge_size, z=-depth_spread))
 
-        layer_rgba = build_layer_rgba(rgb, depth, circle_mask, lo, hi, feather, is_last)
-        mesh = make_plane_mesh(layer_rgba, size=badge_size, z=z)
-        meshes.append(mesh)
+    # --- Pop-out layers (foreground elements only, floating above base) -------
+    # n_layers pop-out planes between Z=(-depth_spread + step) and Z=0
+    # Each shows only pixels above a depth threshold — tight masks, no full discs
+    thresholds = np.linspace(0.35, 0.80, n_layers)     # depth cut-offs
+    z_steps    = np.linspace(-depth_spread * 0.6, 0.0, n_layers)  # Z positions
+
+    for i, (thresh, z) in enumerate(zip(thresholds, z_steps)):
+        label = 'foreground' if i == n_layers - 1 else f'popup {i}'
+        print(f'  Popup {i} : depth >={thresh:.2f}  Z={z:+.1f}  ({label})')
+        popup_rgba = build_popup_rgba(rgb, depth, circle_mask, thresh, feather)
+        meshes.append(make_plane_mesh(popup_rgba, size=badge_size, z=float(z)))
 
     print('Exporting : writing GLB...')
     scene = trimesh.Scene(meshes)

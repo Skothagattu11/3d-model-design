@@ -102,14 +102,58 @@ def build_mesh(
     return mesh
 
 
+def make_glass_cover(
+    badge_radius: float,
+    cover_z: float,
+    segments: int = 128,
+) -> trimesh.Trimesh:
+    """
+    Transparent circular cover disc sitting cover_z units in front of the badge.
+
+    The air gap between this cover and the recessed badge content makes the
+    spatial depth immediately visible when the badge is viewed at any angle.
+    Material: near-transparent with very low roughness (smooth glass/acrylic).
+    """
+    angles = np.linspace(0, 2 * np.pi, segments, endpoint=False)
+    verts = [[0., 0., cover_z]]
+    uvs   = [[0.5, 0.5]]
+    for a in angles:
+        x, y = np.cos(a) * badge_radius, np.sin(a) * badge_radius
+        verts.append([x, y, cover_z])
+        uvs.append([x / badge_radius * 0.5 + 0.5,
+                    y / badge_radius * 0.5 + 0.5])
+
+    verts = np.array(verts, dtype=np.float64)
+    uvs   = np.array(uvs,   dtype=np.float64)
+    faces = []
+    for i in range(segments):
+        j = i % segments + 1
+        k = (i + 1) % segments + 1
+        faces.append([0, j, k])
+
+    mesh = trimesh.Trimesh(vertices=verts, faces=np.array(faces), process=False)
+
+    # Very slight cool tint, mostly transparent, mirror-smooth glass
+    material = PBRMaterial(
+        baseColorFactor=[0.88, 0.93, 1.0, 0.12],   # near-invisible, faint blue tint
+        metallicFactor=0.0,
+        roughnessFactor=0.04,                        # very smooth
+        alphaMode='BLEND',
+        doubleSided=True,
+    )
+    mesh.visual = TextureVisuals(uv=uvs, material=material)
+    return mesh
+
+
 def make_side_wall(badge_radius: float, thickness: float, segments: int = 128,
-                   rim_color: tuple = (180, 140, 60)) -> trimesh.Trimesh:
-    """Cylinder wall around the badge disc edge."""
+                   rim_color: tuple = (180, 140, 60),
+                   top_z: float = 0.) -> trimesh.Trimesh:
+    """Cylinder wall spanning from top_z (cover face) down to -thickness."""
     angles = np.linspace(0, 2 * np.pi, segments, endpoint=False)
     verts = []
     for a in angles:
         x, y = np.cos(a) * badge_radius, np.sin(a) * badge_radius
-        verts += [[x, y, 0.], [x, y, -thickness]]
+        verts += [[x, y, top_z], [x, y, -thickness]]
     verts = np.array(verts, dtype=np.float64)
     faces = []
     for i in range(segments):
@@ -154,11 +198,14 @@ def main() -> None:
     ap.add_argument('--depth-scale', type=float, default=6.,   help='How deep the inner scene recedes in 3D units (default 6)')
     ap.add_argument('--grid',        type=int,   default=384,  help='Mesh resolution NxN (default 384)')
     ap.add_argument('--badge-radius',type=float, default=50.,  help='Badge radius in 3D units (default 50)')
-    ap.add_argument('--thickness',   type=float, default=4.,   help='Side wall thickness (default 4)')
+    ap.add_argument('--thickness',   type=float, default=4.,   help='Side wall thickness behind badge face (default 4)')
+    ap.add_argument('--cover',       type=float, default=3.,   help='Glass cover height in front of badge face in 3D units (default 3)')
+    ap.add_argument('--no-cover',    action='store_true',      help='Omit the transparent glass cover')
     ap.add_argument('--rim-color',   type=str,   default='196,146,89', help='Rim RGB (default 196,146,89 — gold)')
     args = ap.parse_args()
 
     rim = tuple(int(x) for x in args.rim_color.split(','))
+    cover_z = float(args.cover)   # glass sits cover_z units in front of badge face
 
     print(f'Loading  : {args.input}')
     src = Image.open(args.input).convert('RGB')
@@ -181,18 +228,27 @@ def main() -> None:
                            grid=args.grid)
     print(f'  -> {len(face_mesh.vertices):,} vertices  {len(face_mesh.faces):,} faces')
 
-    side = make_side_wall(args.badge_radius, args.thickness, rim_color=rim)
-    back = make_back(args.badge_radius, args.thickness, rim_color=rim)
+    # Side wall spans from cover face down to back plate
+    total_thickness = args.thickness + cover_z
+    side = make_side_wall(args.badge_radius, total_thickness, rim_color=rim, top_z=cover_z)
+    back = make_back(args.badge_radius, total_thickness, rim_color=rim)
+
+    meshes = [face_mesh, side, back]
+
+    if not args.no_cover:
+        print(f'Cover    : transparent glass disc at Z=+{cover_z:.1f}...')
+        cover = make_glass_cover(args.badge_radius, cover_z=cover_z)
+        meshes.append(cover)
 
     print('Exporting: writing GLB...')
-    scene = trimesh.Scene([face_mesh, side, back])
+    scene = trimesh.Scene(meshes)
     scene.export(args.output)
 
     kb = os.path.getsize(args.output) / 1024
     print(f'Saved    : {args.output}  ({kb:.1f} KB)')
     print()
     print('Preview  : https://gltf-viewer.donmccurdy.com  (drag & drop the GLB)')
-    print('  Rotate slowly -- the inner scene recedes inward like a carved medallion.')
+    print('  Rotate the badge -- depth visible through the glass cover.')
 
 
 if __name__ == '__main__':

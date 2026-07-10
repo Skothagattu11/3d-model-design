@@ -44,7 +44,20 @@ python png_to_glb.py \
   --rim-color "<R,G,B from step 1>"
 ```
 
-### Step 4 (optional) — Add hologram iridescence
+### Step 4 (optional) — Spatial depth GLB (parallax layers)
+
+```bash
+python depth_to_planes.py \
+  --input  output/<badge>.png \
+  --output output/<badge>_spatial.glb \
+  --layers 5 --depth-spread 35 --feather 18 --texture-size 1024
+```
+
+Creates 5 transparent planes at different Z depths (foreground figure at Z=0,
+background stars at Z=-35). Rotating in the viewer shows genuine parallax —
+each element floats at its own depth. Use `--texture-size 512` for smaller files.
+
+### Step 5 (optional) — Add hologram iridescence
 
 ```bash
 node add_holo.js output/<badge>_medal.glb output/<badge>_holo.glb

@@ -20,6 +20,9 @@ def build(spec: dict, output_dir: str, name: str | None = None) -> str:
                 mesh = extrude(comp["profile"], comp["height"])
             elif t == "convex_hull_gem":
                 mesh = convex_hull_gem(comp["points"])
+            else:
+                print(f"WARNING: unknown component type '{t}' for '{comp['name']}' — skipping")
+                continue
         except Exception as exc:
             print(f"WARNING: failed to build component '{comp['name']}' ({t}): {exc}")
             continue
@@ -37,4 +40,4 @@ def build(spec: dict, output_dir: str, name: str | None = None) -> str:
     scene.export(out_path)
     print(f"GLB written: {out_path} ({round(os.path.getsize(out_path) / 1024, 1)} KB)")
 
-    return out_path
+    return os.path.abspath(out_path)

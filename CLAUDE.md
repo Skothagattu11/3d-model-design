@@ -44,6 +44,18 @@ python png_to_glb.py \
   --rim-color "<R,G,B from step 1>"
 ```
 
+### Step 4 (optional) — Add hologram iridescence
+
+```bash
+node add_holo.js output/<badge>_medal.glb output/<badge>_holo.glb
+# Fine-tune with:
+node add_holo.js output/<badge>_medal.glb output/<badge>_holo.glb \
+  --factor 0.88 --ior 1.8 --min 100 --max 500
+```
+
+Requires: Node.js + `npm install` in the project directory (installs `@gltf-transform/extensions`).
+Effect is **view-angle reactive** — rainbow shifts as you rotate in any WebGL viewer.
+
 Preview at: https://gltf-viewer.donmccurdy.com
 
 ### UV alignment rules (if badge is off-centre on the disc)
@@ -75,13 +87,15 @@ The `/3d-model` Claude Code skill (SKILL.md) describes the full GeometrySpec for
 depth_render.py       — depth relief lighting for PNG badges
 png_to_glb.py         — wrap PNG onto circular disc GLB with rim + back plate
 measure_badge.py      — auto-measure badge centre, radius, rim colour
+add_holo.js           — inject KHR_materials_iridescence into a GLB (hologram effect)
 generate_3d.py        — CLI for geometric model builder
 engine/               — geometric model builder (revolve, extrude, gem)
 fixtures/             — GeometrySpec JSON sample files
 tests/                — test suite (pytest)
 SKILL.md              — /3d-model Claude Code skill definition
 output/               — generated files (gitignored)
-requirements.txt      — Python dependencies
+requirements.txt      — Python dependencies (pip)
+package.json          — Node.js dependencies (npm install for add_holo.js)
 ```
 
 ## Dependencies

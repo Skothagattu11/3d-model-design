@@ -1,0 +1,28 @@
+{
+  "name": "3d-model-skill",
+  "version": "1.0.0",
+  "description": "",
+  "main": "holo_config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Skothagattu11/3d-model-design.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Skothagattu11/3d-model-design/issues"
+  },
+  "homepage": "https://github.com/Skothagattu11/3d-model-design#readme",
+  "dependencies": {
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1"
+  }
+}

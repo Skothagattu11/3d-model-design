@@ -1,0 +1,122 @@
+{
+  "object_name": "star_achievement_badge",
+  "components": [
+    {
+      "name": "plaque_body",
+      "type": "extrude",
+      "profile": [
+        [18.0, 0.0], [82.0, 0.0], [100.0, 18.0], [100.0, 82.0],
+        [82.0, 100.0], [18.0, 100.0], [0.0, 82.0], [0.0, 18.0]
+      ],
+      "height": 8.0,
+      "material": {
+        "name": "Copper",
+        "base_color": [0.72, 0.45, 0.30, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.35,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "inner_panel",
+      "type": "extrude",
+      "profile": [
+        [23.0, 5.0], [77.0, 5.0], [95.0, 23.0], [95.0, 77.0],
+        [77.0, 95.0], [23.0, 95.0], [5.0, 77.0], [5.0, 23.0]
+      ],
+      "height": 6.5,
+      "material": {
+        "name": "CopperBrushed",
+        "base_color": [0.80, 0.55, 0.38, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.28,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "star_1",
+      "type": "extrude",
+      "profile": [
+        [25.0, 27.0], [23.4, 22.2], [18.3, 22.2], [22.5, 19.2],
+        [20.9, 14.3], [25.0, 17.3], [29.1, 14.3], [27.5, 19.2],
+        [31.7, 22.2], [26.6, 22.2]
+      ],
+      "height": 10.5,
+      "material": {
+        "name": "PolishedGold",
+        "base_color": [0.86, 0.70, 0.22, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.12,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "star_2",
+      "type": "extrude",
+      "profile": [
+        [36.0, 42.0], [34.0, 35.8], [27.4, 35.8], [32.8, 31.9],
+        [30.7, 25.7], [36.0, 29.6], [41.3, 25.7], [39.2, 31.9],
+        [44.6, 35.8], [38.0, 35.8]
+      ],
+      "height": 10.5,
+      "material": {
+        "name": "PolishedGold",
+        "base_color": [0.86, 0.70, 0.22, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.12,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "star_3",
+      "type": "extrude",
+      "profile": [
+        [48.0, 58.0], [45.5, 50.4], [37.6, 50.4], [44.0, 45.7],
+        [41.5, 38.7], [48.0, 42.8], [54.5, 38.7], [52.0, 45.7],
+        [58.4, 50.4], [50.5, 50.4]
+      ],
+      "height": 10.5,
+      "material": {
+        "name": "PolishedGold",
+        "base_color": [0.86, 0.70, 0.22, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.12,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "star_4",
+      "type": "extrude",
+      "profile": [
+        [60.0, 74.0], [57.1, 65.0], [47.6, 65.0], [55.3, 59.5],
+        [52.4, 50.5], [60.0, 56.1], [67.6, 50.5], [64.7, 59.5],
+        [72.4, 65.0], [62.9, 65.0]
+      ],
+      "height": 10.5,
+      "material": {
+        "name": "PolishedGold",
+        "base_color": [0.86, 0.70, 0.22, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.12,
+        "alpha_mode": null
+      }
+    },
+    {
+      "name": "star_5",
+      "type": "extrude",
+      "profile": [
+        [72.0, 91.0], [68.4, 79.9], [56.8, 79.9], [66.2, 73.1],
+        [62.6, 62.0], [72.0, 68.9], [81.4, 62.0], [77.8, 73.1],
+        [87.2, 79.9], [75.6, 79.9]
+      ],
+      "height": 10.5,
+      "material": {
+        "name": "PolishedGold",
+        "base_color": [0.86, 0.70, 0.22, 1.0],
+        "metallic": 1.0,
+        "roughness": 0.12,
+        "alpha_mode": null
+      }
+    }
+  ]
+}

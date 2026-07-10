@@ -1,5 +1,4 @@
 import trimesh
-import pytest
 from engine.primitives import revolve, extrude, convex_hull_gem
 
 
